@@ -1,0 +1,20 @@
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {WrapperComponent} from './components/wrapper/wrapper.component';
+import {FooterModule} from '../../components/footer';
+
+
+@NgModule({
+  declarations: [
+    WrapperComponent
+  ],
+  imports: [
+    CommonModule,
+    FooterModule,
+  ],
+  exports: [
+    WrapperComponent,
+  ],
+})
+export class WrapperModule {
+}

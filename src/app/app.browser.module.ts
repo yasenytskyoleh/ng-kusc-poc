@@ -5,14 +5,15 @@ import {BrowserTransferStateModule} from '@angular/platform-browser';
 import {NgModule} from '@angular/core';
 import {REQUEST} from '@nguniversal/express-engine/tokens';
 import {StateTransferInitializerModule} from '@nguniversal/common';
-import { ServiceWorkerModule } from '@angular/service-worker';
-import { environment } from '../environments/environment';
+import {ServiceWorkerModule} from '@angular/service-worker';
+import {environment} from '../environments/environment';
 
 export const getRequest = (): any => {
   return {headers: {cookie: document.cookie}};
 };
 
 @NgModule({
+  bootstrap: [AppComponent],
   imports: [
     AppModule,
     StateTransferInitializerModule,
