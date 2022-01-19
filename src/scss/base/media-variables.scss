@@ -1,0 +1,46 @@
+//media
+
+$mobile-screen: 480px;
+$tablet-screen: 768px;
+$laptop-screen: 1024px;
+$large-screen: 1440px;
+$huge-screen: 1920px;
+
+
+// indention
+$mobile-indent: 1.6rem;
+$tablet-indent: 4.5rem;
+$laptop-indent: 4.7rem;
+$large-indent: 0;
+$content-max-width: 104.2rem;
+
+
+@mixin mobile {
+  @media screen and (min-width: #{$mobile-screen}) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media screen and (min-width: #{$tablet-screen}) {
+    @content;
+  }
+}
+
+@mixin laptop {
+  @media screen and (min-width: #{$laptop-screen}) {
+    @content;
+  }
+}
+
+@mixin large {
+  @media screen and (min-width: #{$large-screen}) {
+    @content;
+  }
+}
+
+@mixin huge {
+  @media screen and (min-width: #{$huge-screen}) {
+    @content;
+  }
+}

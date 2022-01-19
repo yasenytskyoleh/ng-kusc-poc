@@ -1,0 +1,55 @@
+<div class="volume-control">
+  <div class="volume-slider-btn">
+    <ng-container *ngIf="volume >= .5; else lowVolume">
+      <ng-container *ngTemplateOutlet="maxIcon"></ng-container>
+    </ng-container>
+
+    <ng-template #lowVolume>
+      <ng-container *ngTemplateOutlet="volume > 0 ? mediumIcon : muteIcon"></ng-container>
+    </ng-template>
+  </div>
+
+  <div class="volume-slider-wrapper">
+    <button class="volume-toggle" (click)="toggleVolume()">
+      <ng-container *ngIf="volume >= .5; else lowVolume">
+        <ng-container *ngTemplateOutlet="maxIcon"></ng-container>
+      </ng-container>
+
+      <ng-template #lowVolume>
+        <ng-container *ngTemplateOutlet="volume > 0 ? mediumIcon : muteIcon"></ng-container>
+      </ng-template>
+    </button>
+    <input #volumeControl
+           class="volume-slider"
+           type="range"
+           min="0"
+           max="1"
+           [value]="volume"
+           step="0.01"
+           (input)="onChangeValue($event)">
+  </div>
+</div>
+
+
+<ng-template #maxIcon>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M0 5.99998V12H4L9 17V0.99998L4 5.99998H0ZM13.5 8.99998C13.4998 8.1621 13.2657 7.34092 12.824 6.62892C12.3823 5.91692 11.7506 5.34237 11 4.96998V13.02C12.48 12.29 13.5 10.77 13.5 8.99998ZM11 0.22998V2.28998C13.89 3.14998 16 5.82998 16 8.99998C16 12.17 13.89 14.85 11 15.71V17.77C15.01 16.86 18 13.28 18 8.99998C18 4.71998 15.01 1.13998 11 0.22998Z"
+      fill="#353434"/>
+  </svg>
+</ng-template>
+
+<ng-template #mediumIcon>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0 5V11H4L9 16V0L4 5H0ZM13.5 8C13.5 6.23 12.5 4.71 11 3.97V12C12.5 11.29 13.5 9.76 13.5 8Z"
+          fill="#353434"/>
+  </svg>
+</ng-template>
+
+<ng-template #muteIcon>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M1.63875 0.640137L17.3588 16.3601L15.9488 17.7801L11.9988 13.8301V17.0001L6.99875 12.0001H2.99875V6.00014H4.16875L0.21875 2.05014L1.63875 0.640137ZM11.9988 1.00014V8.17014L8.40875 4.58014L11.9988 1.00014Z"
+      fill="#353434"/>
+  </svg>
+</ng-template>

@@ -60,7 +60,7 @@ export interface TDPlayer {
   unMute: () => void;
   NowPlayingApi: NowPlayingApi;
 
-  addEventListener: (event: string, cb: (event: unknown) => void) => unknown;
+  addEventListener: (event: string, cb: (event: PlayerEvent<any>) => void) => unknown;
   removeEventListener: (event: string, listener: unknown) => void;
 }
 

@@ -2,18 +2,18 @@ import {Inject, Injectable, Renderer2, RendererFactory2} from '@angular/core';
 import {
   PlayerAdServerType,
   PlayerState,
+  PlayerStateStatus,
   StreamState,
   StreamStateEvent,
   TDPlayer,
   TDPlayerConfig,
   Track,
-  TrackCuePoint,
-  TrackCuePointEvent,
-  TrackCuePointListEvent
+  TrackCuePointEvent
 } from '../models';
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import {DOCUMENT} from '@angular/common';
 import {PlatformBrowserService} from '@core/modules/browser';
+import {distinctUntilChanged, map} from 'rxjs/operators';
 
 declare const TDSdk: any;
 
@@ -40,17 +40,20 @@ export class PlayerService {
     return this.player.getVolume();
   }
 
-  private playerInstanceState$: BehaviorSubject<PlayerState> = new BehaviorSubject<PlayerState>('initializing');
+  private playerInstanceState$: BehaviorSubject<PlayerState> = new BehaviorSubject<PlayerState>({
+    previous: null,
+    current: 'initializing'
+  });
   private streamInstanceState$: BehaviorSubject<StreamState | null> = new BehaviorSubject<StreamState | null>(null);
   private currentTrackState$: Subject<Track | null> = new Subject<Track | null>();
-
+  private streamFail$ = new Subject<boolean>();
   private renderer: Renderer2;
+  private readonly playerId = 'player-container-wrap';
 
-  public playerState$: Observable<PlayerState> = this.playerInstanceState$.asObservable();
+  public playerState$: Observable<PlayerStateStatus> = this.getCurrentPlayerStatus();
   public streamState$: Observable<StreamState | null> = this.streamInstanceState$.asObservable();
   public currentTrack$: Observable<Track | null> = this.currentTrackState$.asObservable();
-  private streamFail$ = new Subject<boolean>();
-  public streamFailLoading$ = this.streamFail$.asObservable();
+  public streamFailLoading$: Observable<boolean> = this.streamFail$.asObservable();
 
   constructor(
     private readonly rendererFactory: RendererFactory2,
@@ -59,28 +62,33 @@ export class PlayerService {
   ) {
     this.renderer = rendererFactory.createRenderer(null, null);
     if (platformBrowserService.isBrowser) {
-      this.initPlayerSDK('player-container-wrap');
+      this.initPlayerSDK(this.playerId);
     }
-  }
-
-  public init(): void {
-
-
   }
 
   public destroy(): void {
     this.streamInstanceState$.complete();
     // TODO: Check listeners removing
     this.player.stop();
-    this.player?.destroyAd();
+    this.removePlayerContainer(this.playerId);
+    this.player.destroy();
+    this.player.destroyAd();
   }
 
   private addPlayerContainer(playerId: string): void {
     const div = this.renderer.createElement('div');
     this.renderer.setAttribute(div, 'id', playerId);
-    if (this.document?.body) {
-      this.renderer.appendChild(this.document.body, div);
+    const body = this.document.body;
+    this.renderer.appendChild(body, div);
+  }
+
+  private removePlayerContainer(playerId: string): void {
+    const body = this.document.body;
+    const player = body.querySelector(`${playerId}`);
+    if (!player) {
+      return;
     }
+    this.renderer.removeChild(body, player);
   }
 
   private initPlayerSDK(playerId: string): void {
@@ -101,10 +109,8 @@ export class PlayerService {
       moduleError: (e) => this.onModuleError(e),
       adBlockerDetected: () => this.onAdBlockerDetected(),
     };
-    console.log(tdPlayerConfig);
     this.player = new TDSdk(tdPlayerConfig);
-    console.log(this.player);
-    this.onStreamState();
+    this.onStreamStateChange();
 
     this.player.addEventListener('stream-fail', () => {
       this.streamFail$.next(true);
@@ -112,9 +118,9 @@ export class PlayerService {
   }
 
   public play(station: string): void {
-    console.log(station);
     this.setVolume(this.currentVolume || .5);
     this.player.play({station, timeShifting: true});
+    this.updatePlayerStatus('play');
   }
 
   public playAd(): void {
@@ -125,6 +131,7 @@ export class PlayerService {
         linkUrl: 'http://www.google.fr/'
       }
     );
+    this.updatePlayerStatus('play');
   }
 
   public seek(): void {
@@ -133,39 +140,41 @@ export class PlayerService {
 
   public stop(): void {
     this.player.stop();
+    this.updatePlayerStatus('stop');
   }
 
   private onPlayerReady(): void {
-    this.playerInstanceState$.next('ready');
-    this.onTrackCuePoint();
+    this.updatePlayerStatus('ready');
     this.setVolume(this.currentVolume);
-    this.recentTracks();
-    this.nowPlayingApi();
+    // this.recentTracks();
+    // this.nowPlayingApi();
   }
 
-  private recentTracks(): void {
-    this.player.NowPlayingApi.load({
-      mount: 'SP_R3873504',
-      hd: false,
-      numberToFetch: 10,
-      eventType: 'track',
-    });
-  }
+  //
+  // private recentTracks(): void {
+  //   this.player.NowPlayingApi.load({
+  //     mount: 'SP_R3873504',
+  //     hd: false,
+  //     numberToFetch: 10,
+  //     eventType: 'track',
+  //   });
+  // }
 
-  private onTrackCuePoint(): void {
+  public trackCuePoint(): void {
     const eventName = 'track-cue-point';
     this.player.addEventListener(eventName, (event: TrackCuePointEvent) => {
       const {data} = event;
-      console.log(event);
       const {cuePoint} = data;
       const {cueTimeStart, cueTitle, artistName, parameters, albumName} = cuePoint;
+      console.log(event);
       this.currentTrackState$.next(new Track(cueTimeStart, cueTitle, artistName, parameters?.track_isrc, albumName));
     });
   }
 
-  private onConfigurationError(e): void {
+  // TODO: add type
+  private onConfigurationError(e: any): void {
     console.log('onConfigurationError', e);
-    this.playerInstanceState$.next('error');
+    this.updatePlayerStatus('error');
   }
 
   private onAdBlockerDetected(): void {
@@ -174,10 +183,10 @@ export class PlayerService {
 
   private onModuleError(e: unknown): void {
     console.log('onModuleError', e);
-    this.playerInstanceState$.next('error');
+    this.updatePlayerStatus('error');
   }
 
-  private onStreamState(): void {
+  private onStreamStateChange(): void {
     const eventName = 'stream-status';
     this.player.addEventListener(eventName, (event: StreamStateEvent) => {
       const state = event?.data?.code;
@@ -185,14 +194,14 @@ export class PlayerService {
     });
   }
 
-  public nowPlayingApi(): Observable<TrackCuePoint[]> {
-    const player = this.player;
-    return new Observable<TrackCuePoint[]>(subscriber => {
-      player.addEventListener('list-loaded', (event: TrackCuePointListEvent) => subscriber.next(event.data.list));
-      player.addEventListener('list-empty', (event) => subscriber.next([]));
-      player.addEventListener('nowplaying-api-error', (event) => subscriber.error(event));
-    });
-  }
+  // public nowPlayingApi(): Observable<TrackCuePoint[]> {
+  //   const player = this.player;
+  //   return new Observable<TrackCuePoint[]>(subscriber => {
+  //     player.addEventListener('list-loaded', (event: TrackCuePointListEvent) => subscriber.next(event.data.list));
+  //     player.addEventListener('list-empty', (event) => subscriber.next([]));
+  //     player.addEventListener('nowplaying-api-error', (event) => subscriber.error(event));
+  //   });
+  // }
 
   public mute(): void {
     this.player.mute();
@@ -204,15 +213,25 @@ export class PlayerService {
 
   public setVolume(volume: number): void {
     this.currentVolume = volume;
-    if (volume > 1) {
+    if (volume < 0 || volume > 1) {
       return;
     }
-    if (volume <= 0) {
-      const minVolume = 0.000001;
-      volume = minVolume;
-      this.currentVolume = minVolume;
-    }
     this.player.setVolume(volume);
+
+    // if (volume <= 0) {
+    // const minVolume = 0.000001;
+    // volume = minVolume;
+    // this.currentVolume = minVolume;
+    // }
+  }
+
+  public updatePlayerStatus(current: PlayerStateStatus): void {
+    const state = this.playerInstanceState$.value;
+    this.playerInstanceState$.next({previous: state.current, current});
+  }
+
+  private getCurrentPlayerStatus(): Observable<PlayerStateStatus> {
+    return this.playerInstanceState$.asObservable().pipe(map(state => state.current), distinctUntilChanged())
   }
 
 }

@@ -1,1 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
+@import "./scss/base/media-variables";
+@import "scss/base/reset";
+@import "scss/base/colors";
+
+@import "scss/components/footer";
+@import "scss/components/player";
