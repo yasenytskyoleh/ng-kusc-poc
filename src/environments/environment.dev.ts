@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
   baseUrl: 'https://schedule.kusc.org',
-  apiEndpoint: 'https://api.classicalcalifornia.org',
+  apiEndpoint: 'https://kusc.dev.idap.pro',
 };

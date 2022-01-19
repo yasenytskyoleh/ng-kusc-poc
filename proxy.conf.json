@@ -1,0 +1,11 @@
+{
+  "/api": {
+    "target": "https://schedule.kusc.org",
+    "secure": true,
+    "pathRewrite": {
+      "^/api": ""
+    },
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}
