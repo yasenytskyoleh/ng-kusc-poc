@@ -1,11 +1,21 @@
-import {ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  Output,
+  SimpleChanges
+} from '@angular/core';
 import {PlayerService} from '../../services/player.service';
-import {BehaviorSubject, combineLatest, Observable, Subject} from 'rxjs';
+import {combineLatest, Observable, Subject} from 'rxjs';
 import {PlatformBrowserService} from '@core/modules/browser';
 import {Router} from '@angular/router';
 import {DestroySubscription} from '../../../../helpers/classes';
-import {distinctUntilChanged, filter, takeUntil} from 'rxjs/operators';
-import {Track} from '../../models';
+import {distinctUntilChanged, filter, map, takeUntil} from 'rxjs/operators';
+import {isPlayingPlayer, PlayerStateStatus, Track} from '../../models';
 
 @Component({
   selector: 'app-player',
@@ -21,6 +31,7 @@ export class PlayerComponent extends DestroySubscription implements OnInit, OnCh
   public readonly id = `player-container-${PlayerComponent.nextId++}`;
 
   @Input() station: string | null = null;
+  @Output() playerPlayingChange = new EventEmitter<boolean>();
 
 
   public loading: boolean = false;
@@ -34,8 +45,6 @@ export class PlayerComponent extends DestroySubscription implements OnInit, OnCh
   // private readonly destroyTracked$ = new Subject<void>();
   // private readonly stopUpdatesTracks$ = new Subject<void>();
   // private readonly destroyIntervalConnecting$ = new Subject<void>();
-
-  private trackNow$: Observable<Track> = this.getCurrentTrack();
   // private recentTracks$ = this.recentTracksUpdate$.asObservable();
 
   private statuses = {current: null, previous: null};
@@ -85,15 +94,15 @@ export class PlayerComponent extends DestroySubscription implements OnInit, OnCh
 
   private getPlayingState(): void {
     this.playerService.playerState$.pipe(
+      map(state => isPlayingPlayer(state)),
       distinctUntilChanged(),
-      // debounceTime(0),
       takeUntil(this.destroyStream$)
-    ).subscribe(state => {
-      this.playing = state === 'play';
+    ).subscribe(isPlaying => {
+      this.playing = isPlaying;
+      this.playerPlayingChange.emit(isPlaying);
       this.cdr.detectChanges();
     });
   }
-
 
   public onChangeVolume(event: number): void {
     const volume = +event;
@@ -123,10 +132,6 @@ export class PlayerComponent extends DestroySubscription implements OnInit, OnCh
       this.cdr.detectChanges();
       // this.intervalConnecting();
     });
-  }
-
-  private getCurrentTrack(): Observable<Track> {
-    return combineLatest([])
   }
 
 }

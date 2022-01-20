@@ -1,3 +1,9 @@
 <footer class="footer">
-  <app-player [station]="'CC2_S01'"></app-player>
+  <app-player [station]="stationName"
+              (playerPlayingChange)="onPlayerStateChange($event)">
+    <div *ngIf="currentTrack$ | async  as currentTrack">
+      {{currentTrack.title}}
+      {{currentTrack.artist}}
+    </div>
+  </app-player>
 </footer>

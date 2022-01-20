@@ -14,6 +14,7 @@ import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import {DOCUMENT} from '@angular/common';
 import {PlatformBrowserService} from '@core/modules/browser';
 import {distinctUntilChanged, map} from 'rxjs/operators';
+import {AppStateService} from '@core/modules/app-state';
 
 declare const TDSdk: any;
 
@@ -45,20 +46,19 @@ export class PlayerService {
     current: 'initializing'
   });
   private streamInstanceState$: BehaviorSubject<StreamState | null> = new BehaviorSubject<StreamState | null>(null);
-  private currentTrackState$: Subject<Track | null> = new Subject<Track | null>();
   private streamFail$ = new Subject<boolean>();
   private renderer: Renderer2;
   private readonly playerId = 'player-container-wrap';
 
   public playerState$: Observable<PlayerStateStatus> = this.getCurrentPlayerStatus();
   public streamState$: Observable<StreamState | null> = this.streamInstanceState$.asObservable();
-  public currentTrack$: Observable<Track | null> = this.currentTrackState$.asObservable();
   public streamFailLoading$: Observable<boolean> = this.streamFail$.asObservable();
 
   constructor(
     private readonly rendererFactory: RendererFactory2,
     @Inject(DOCUMENT) private readonly document: Document,
     private readonly platformBrowserService: PlatformBrowserService,
+    private readonly appStateService: AppStateService,
   ) {
     this.renderer = rendererFactory.createRenderer(null, null);
     if (platformBrowserService.isBrowser) {
@@ -131,7 +131,7 @@ export class PlayerService {
         linkUrl: 'http://www.google.fr/'
       }
     );
-    this.updatePlayerStatus('play');
+    this.updatePlayerStatus('playAd');
   }
 
   public seek(): void {
@@ -167,7 +167,7 @@ export class PlayerService {
       const {cuePoint} = data;
       const {cueTimeStart, cueTitle, artistName, parameters, albumName} = cuePoint;
       console.log(event);
-      this.currentTrackState$.next(new Track(cueTimeStart, cueTitle, artistName, parameters?.track_isrc, albumName));
+      this.appStateService.currentTrack = new Track(cueTimeStart, cueTitle, artistName, parameters?.track_isrc, albumName);
     });
   }
 
