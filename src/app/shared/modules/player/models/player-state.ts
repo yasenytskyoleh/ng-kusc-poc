@@ -1,4 +1,4 @@
-export type PlayerStateStatus = 'initializing' | 'ready' | 'play' | 'playAd' | 'stop' | 'error' | 'fail';
+export type PlayerStateStatus = 'initializing' | 'ready' | 'loading' | 'play' | 'playAd' | 'stop' | 'error' | 'fail';
 
 
 export interface PlayerState {
@@ -6,5 +6,8 @@ export interface PlayerState {
   current: PlayerStateStatus;
 }
 
-
 export const isPlayingPlayer = (status: PlayerStateStatus): boolean => status === 'play' || status === 'playAd';
+
+export const showPlayerLoader = (status: PlayerStateStatus): boolean => ['loading'].includes(status);
+
+

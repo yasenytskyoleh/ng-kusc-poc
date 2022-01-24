@@ -6,6 +6,8 @@ import {DestroySubscription} from '../../../../helpers/classes';
 import {StationApiService} from '../../../../services/station-api/station-api.service';
 import {AppStateService} from '@core/modules/app-state';
 import {Track} from '../../../../modules/player/models';
+import Platform = NodeJS.Platform;
+import {PlatformBrowserService} from '@core/modules/browser';
 
 @Component({
   selector: 'app-footer',
@@ -17,13 +19,16 @@ export class FooterComponent extends DestroySubscription implements OnInit, OnDe
   public readonly stationName = 'CC2_S01';
   private readonly stopUpdateTracks$ = new Subject<void>();
   public currentTrack$: Observable<Track | null> = this.appStateService.currentTrack$;
+  public isBrowser: boolean;
 
   constructor(
     private readonly playerApiService: PlayerApiService,
     private readonly stationApiService: StationApiService,
     private readonly appStateService: AppStateService,
+    private readonly platformBrowserService: PlatformBrowserService,
   ) {
     super();
+    this.isBrowser = platformBrowserService.isBrowser;
   }
 
   ngOnInit(): void {
@@ -37,7 +42,6 @@ export class FooterComponent extends DestroySubscription implements OnInit, OnDe
 
 
   public onPlayerStateChange(isPlaying: boolean): void {
-    console.log(isPlaying);
     if (isPlaying) {
       this.stopUpdateTracks$.next();
       return;
@@ -53,8 +57,7 @@ export class FooterComponent extends DestroySubscription implements OnInit, OnDe
       switchMap(_ => this.stationApiService.getStationCurrentTrack(this.stationName)),
       takeUntil(destroyStream$),
     ).subscribe((track) => {
-      console.log(track);
-      this.appStateService.currentTrack = track
+      this.appStateService.currentTrack = track;
     });
   }
 }

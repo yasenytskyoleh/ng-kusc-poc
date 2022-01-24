@@ -95,6 +95,12 @@ button {
   -moz-appearance: button;
   appearance: button;
 }
+[type='button']:not(:disabled),
+[type='reset']:not(:disabled),
+[type='submit']:not(:disabled),
+button {
+  cursor: pointer;
+}
 
 [type='button']::-moz-focus-inner,
 [type='reset']::-moz-focus-inner,

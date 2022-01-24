@@ -37,6 +37,11 @@
             "styles": [
               "src/styles.scss"
             ],
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "src/scss/base"
+              ]
+            },
             "scripts": [
               "src/assets/scripts/player/td-sdk.min.js"
             ],
@@ -141,6 +146,11 @@
             "styles": [
               "src/styles.scss"
             ],
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "src/scss/base"
+              ]
+            },
             "scripts": [
               "src/assets/scripts/player/td-sdk.min.js"
             ]

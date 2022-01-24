@@ -41,10 +41,15 @@ export class PlayerService {
     return this.player.getVolume();
   }
 
+  public get playerCurrentState(): PlayerStateStatus {
+    return this.playerInstanceState$.value.current;
+  }
+
   private playerInstanceState$: BehaviorSubject<PlayerState> = new BehaviorSubject<PlayerState>({
     previous: null,
     current: 'initializing'
   });
+
   private streamInstanceState$: BehaviorSubject<StreamState | null> = new BehaviorSubject<StreamState | null>(null);
   private streamFail$ = new Subject<boolean>();
   private renderer: Renderer2;
@@ -118,12 +123,20 @@ export class PlayerService {
   }
 
   public play(station: string): void {
+    this.stop();
     this.setVolume(this.currentVolume || .5);
     this.player.play({station, timeShifting: true});
-    this.updatePlayerStatus('play');
+    this.updatePlayerStatus('loading');
+  }
+
+  public stop(): void {
+    this.player.stop();
+    this.player.skipAd();
+    this.updatePlayerStatus('stop');
   }
 
   public playAd(): void {
+    this.stop();
     this.player.playAd(
       PlayerAdServerType.mediaAd,
       {
@@ -136,11 +149,6 @@ export class PlayerService {
 
   public seek(): void {
     this.player.seek(-10);
-  }
-
-  public stop(): void {
-    this.player.stop();
-    this.updatePlayerStatus('stop');
   }
 
   private onPlayerReady(): void {
@@ -225,9 +233,12 @@ export class PlayerService {
     // }
   }
 
-  public updatePlayerStatus(current: PlayerStateStatus): void {
-    const state = this.playerInstanceState$.value;
-    this.playerInstanceState$.next({previous: state.current, current});
+  public updatePlayerStatus(newState: PlayerStateStatus): void {
+    const {current} = this.playerInstanceState$.value;
+    if (current === newState) {
+      return;
+    }
+    this.playerInstanceState$.next({previous: current, current: newState});
   }
 
   private getCurrentPlayerStatus(): Observable<PlayerStateStatus> {
