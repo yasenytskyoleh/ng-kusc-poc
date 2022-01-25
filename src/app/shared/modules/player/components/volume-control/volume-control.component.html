@@ -1,5 +1,5 @@
 <div class="volume-control">
-  <div class="volume-slider-btn">
+  <button class="volume-toggle" (click)="toggleVolume()">
     <ng-container *ngIf="volume >= .5; else lowVolume">
       <ng-container *ngTemplateOutlet="maxIcon"></ng-container>
     </ng-container>
@@ -7,18 +7,9 @@
     <ng-template #lowVolume>
       <ng-container *ngTemplateOutlet="volume > 0 ? mediumIcon : muteIcon"></ng-container>
     </ng-template>
-  </div>
+  </button>
 
   <div class="volume-slider-wrapper">
-    <button class="volume-toggle" (click)="toggleVolume()">
-      <ng-container *ngIf="volume >= .5; else lowVolume">
-        <ng-container *ngTemplateOutlet="maxIcon"></ng-container>
-      </ng-container>
-
-      <ng-template #lowVolume>
-        <ng-container *ngTemplateOutlet="volume > 0 ? mediumIcon : muteIcon"></ng-container>
-      </ng-template>
-    </button>
     <input #volumeControl
            class="volume-slider"
            type="range"

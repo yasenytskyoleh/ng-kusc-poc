@@ -5,6 +5,7 @@ import {UniversalStorageService} from '../universal-storage';
 import {AppState} from './app-state.model';
 import {Track} from '@shared/modules/player/models';
 import {pluck} from 'rxjs/operators';
+import {DemandTrackDto, PlayerSource, StationDto} from '@shared/models';
 
 @Injectable()
 export class AppStateService {
@@ -27,6 +28,20 @@ export class AppStateService {
   public get currentTrack$(): Observable<Track | null> {
     return this.state$.pipe(
       pluck('currentTrack')
+    );
+  }
+
+  public set currentAudioSource(track: PlayerSource) {
+    this.setStateProperty('currentAudioSource', track);
+  }
+
+  public get currentAudioSource(): PlayerSource {
+    return this.getStateProperty('currentAudioSource') as PlayerSource;
+  }
+
+  public get currentAudioSource$(): Observable<PlayerSource> {
+    return this.state$.pipe(
+      pluck('currentAudioSource')
     );
   }
 

@@ -1,27 +1,24 @@
-<button class="player-btn" [disabled]="!station" [class.active]="playing" (click)="playHandler($event)">
-
-<!--  <img class="player-btn&#45;&#45;spinner" [class.hide]="!loading" src="assets/images/spinner.gif"-->
-<!--       (click)="loadingClickHandler($event)" alt="spinner">-->
+<button class="player-btn" [disabled]="!source" [class.active]="playing" (click)="playHandler($event)">
   <div class="player-btn__loading" [class.hide]="!loading"></div>
-  <ng-container *ngIf="playing; else playIcon">
+  <ng-container *ngIf="playing || loading; else playIcon">
     <ng-container *ngTemplateOutlet="stopIcon"></ng-container>
   </ng-container>
 </button>
-
-<button (click)="playAdHandler($event)">play ad</button>
-<button (click)="stopAdHandler()">stop ad</button>
-
 <div class="player-container" [id]="id"></div>
 
 <ng-template #playIcon>
   <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M28.5185 15.1463L10.5215 4.1477C10.3699 4.05506 10.1963 4.00448 10.0187 4.00115C9.8411 3.99783 9.6658 4.04188 9.51085 4.12878C9.3559 4.21568 9.2269 4.34229 9.13711 4.49558C9.04733 4.64888 9 4.82332 9 5.00098V26.9981C9 27.1758 9.04733 27.3502 9.13711 27.5035C9.2269 27.6568 9.3559 27.7834 9.51085 27.8703C9.6658 27.9572 9.8411 28.0013 10.0187 27.998C10.1963 27.9946 10.3699 27.944 10.5215 27.8514L28.5185 16.8528C28.6647 16.7635 28.7855 16.6381 28.8693 16.4887C28.9531 16.3393 28.9971 16.1709 28.9971 15.9996C28.9971 15.8283 28.9531 15.6598 28.8693 15.5104C28.7855 15.361 28.6647 15.2356 28.5185 15.1463Z" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path
+      d="M28.5185 15.1463L10.5215 4.1477C10.3699 4.05506 10.1963 4.00448 10.0187 4.00115C9.8411 3.99783 9.6658 4.04188 9.51085 4.12878C9.3559 4.21568 9.2269 4.34229 9.13711 4.49558C9.04733 4.64888 9 4.82332 9 5.00098V26.9981C9 27.1758 9.04733 27.3502 9.13711 27.5035C9.2269 27.6568 9.3559 27.7834 9.51085 27.8703C9.6658 27.9572 9.8411 28.0013 10.0187 27.998C10.1963 27.9946 10.3699 27.944 10.5215 27.8514L28.5185 16.8528C28.6647 16.7635 28.7855 16.6381 28.8693 16.4887C28.9531 16.3393 28.9971 16.1709 28.9971 15.9996C28.9971 15.8283 28.9531 15.6598 28.8693 15.5104C28.7855 15.361 28.6647 15.2356 28.5185 15.1463Z"
+      fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>
 </ng-template>
 
 <ng-template #stopIcon>
   <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M26 5H6C5.44772 5 5 5.44772 5 6V26C5 26.5523 5.44772 27 6 27H26C26.5523 27 27 26.5523 27 26V6C27 5.44772 26.5523 5 26 5Z" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path
+      d="M26 5H6C5.44772 5 5 5.44772 5 6V26C5 26.5523 5.44772 27 6 27H26C26.5523 27 27 26.5523 27 26V6C27 5.44772 26.5523 5 26 5Z"
+      fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>
 </ng-template>
 

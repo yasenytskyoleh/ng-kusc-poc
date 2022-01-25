@@ -63,6 +63,3 @@ import 'zone.js';  // Included with Angular CLI.
 /***************************************************************************************************
  * APPLICATION IMPORTS
  */
-
-
-import 'event-source-polyfill/src/eventsource.min.js'

@@ -1,1 +1,7 @@
-<p>stub works!</p>
+<div>
+  <div *ngFor="let station of stations">
+    <img [src]="station.stationThumbnailUrl">
+    <span>{{station.stationPlayerName}}</span>
+    <button (click)="onPlay(station)">Play</button>
+  </div>
+</div>

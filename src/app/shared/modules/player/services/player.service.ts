@@ -10,11 +10,13 @@ import {
   Track,
   TrackCuePointEvent
 } from '../models';
-import {BehaviorSubject, Observable, Subject} from 'rxjs';
+import {BehaviorSubject, combineLatest, Observable, Subject} from 'rxjs';
 import {DOCUMENT} from '@angular/common';
 import {PlatformBrowserService} from '@core/modules/browser';
-import {distinctUntilChanged, map} from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, filter, map, takeUntil} from 'rxjs/operators';
 import {AppStateService} from '@core/modules/app-state';
+import {TrackMapperService} from '../../../services/track-mapper/track-mapper.service';
+import {DemandTrackDto, PlayerSource, StationDto} from '../../../models';
 
 declare const TDSdk: any;
 
@@ -45,6 +47,10 @@ export class PlayerService {
     return this.playerInstanceState$.value.current;
   }
 
+  public get audioSource(): PlayerSource {
+    return this.appStateService.currentAudioSource;
+  }
+
   private playerInstanceState$: BehaviorSubject<PlayerState> = new BehaviorSubject<PlayerState>({
     previous: null,
     current: 'initializing'
@@ -52,6 +58,7 @@ export class PlayerService {
 
   private streamInstanceState$: BehaviorSubject<StreamState | null> = new BehaviorSubject<StreamState | null>(null);
   private streamFail$ = new Subject<boolean>();
+  private destroyStream$ = new Subject<boolean>();
   private renderer: Renderer2;
   private readonly playerId = 'player-container-wrap';
 
@@ -64,6 +71,7 @@ export class PlayerService {
     @Inject(DOCUMENT) private readonly document: Document,
     private readonly platformBrowserService: PlatformBrowserService,
     private readonly appStateService: AppStateService,
+    private readonly trackMapperService: TrackMapperService,
   ) {
     this.renderer = rendererFactory.createRenderer(null, null);
     if (platformBrowserService.isBrowser) {
@@ -71,8 +79,24 @@ export class PlayerService {
     }
   }
 
+  public init(): void {
+    this.appStateService.currentAudioSource$.pipe(
+      distinctUntilChanged(),
+      filter(_ => !!this.playerCurrentState && this.playerCurrentState !== 'initializing'),
+      takeUntil(this.destroyStream$)
+    ).subscribe((source) => {
+      if (source) {
+        this.play(source);
+        return;
+      }
+      this.stop();
+    })
+  }
+
   public destroy(): void {
     this.streamInstanceState$.complete();
+    this.destroyStream$.next();
+    this.destroyStream$.complete();
     // TODO: Check listeners removing
     this.player.stop();
     this.removePlayerContainer(this.playerId);
@@ -122,9 +146,20 @@ export class PlayerService {
     });
   }
 
-  public play(station: string): void {
-    this.stop();
+  public play(source: PlayerSource): void {
     this.setVolume(this.currentVolume || .5);
+    if (source instanceof StationDto) {
+      this.player.skipAd();
+      this.playStation(source.stationName);
+      return;
+    }
+    if (source instanceof DemandTrackDto) {
+      this.player.stop();
+      this.playAd(source.url);
+    }
+  }
+
+  private playStation(station: string): void {
     this.player.play({station, timeShifting: true});
     this.updatePlayerStatus('loading');
   }
@@ -135,14 +170,11 @@ export class PlayerService {
     this.updatePlayerStatus('stop');
   }
 
-  public playAd(): void {
+  public playAd(mediaUrl: string): void {
     this.stop();
     this.player.playAd(
       PlayerAdServerType.mediaAd,
-      {
-        mediaUrl: 'https://file-examples-com.github.io/uploads/2017/11/file_example_MP3_2MG.mp3',
-        linkUrl: 'http://www.google.fr/'
-      }
+      {mediaUrl}
     );
     this.updatePlayerStatus('playAd');
   }
@@ -154,28 +186,12 @@ export class PlayerService {
   private onPlayerReady(): void {
     this.updatePlayerStatus('ready');
     this.setVolume(this.currentVolume);
-    // this.recentTracks();
-    // this.nowPlayingApi();
   }
-
-  //
-  // private recentTracks(): void {
-  //   this.player.NowPlayingApi.load({
-  //     mount: 'SP_R3873504',
-  //     hd: false,
-  //     numberToFetch: 10,
-  //     eventType: 'track',
-  //   });
-  // }
 
   public trackCuePoint(): void {
     const eventName = 'track-cue-point';
     this.player.addEventListener(eventName, (event: TrackCuePointEvent) => {
-      const {data} = event;
-      const {cuePoint} = data;
-      const {cueTimeStart, cueTitle, artistName, parameters, albumName} = cuePoint;
-      console.log(event);
-      this.appStateService.currentTrack = new Track(cueTimeStart, cueTitle, artistName, parameters?.track_isrc, albumName);
+      this.appStateService.currentTrack = this.trackMapperService.mapTrackCuePoint(event);
     });
   }
 
@@ -202,15 +218,6 @@ export class PlayerService {
     });
   }
 
-  // public nowPlayingApi(): Observable<TrackCuePoint[]> {
-  //   const player = this.player;
-  //   return new Observable<TrackCuePoint[]>(subscriber => {
-  //     player.addEventListener('list-loaded', (event: TrackCuePointListEvent) => subscriber.next(event.data.list));
-  //     player.addEventListener('list-empty', (event) => subscriber.next([]));
-  //     player.addEventListener('nowplaying-api-error', (event) => subscriber.error(event));
-  //   });
-  // }
-
   public mute(): void {
     this.player.mute();
   }
@@ -225,12 +232,6 @@ export class PlayerService {
       return;
     }
     this.player.setVolume(volume);
-
-    // if (volume <= 0) {
-    // const minVolume = 0.000001;
-    // volume = minVolume;
-    // this.currentVolume = minVolume;
-    // }
   }
 
   public updatePlayerStatus(newState: PlayerStateStatus): void {

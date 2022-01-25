@@ -13,7 +13,7 @@ export interface ITrackDto<T> {
 export type TrackNowDto = ITrackDto<ITimeTrack>;
 export type TrackListDto = ISongs<string>[];
 
-export interface ISongs<T>{
+export interface ISongs<T> {
   readonly songs: ITrackDto<T>[];
 }
 
@@ -46,3 +46,4 @@ export interface IInfoTrack {
   readonly station?: string;
   readonly trivia?: string;
 }
+

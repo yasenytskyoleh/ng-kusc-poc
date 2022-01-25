@@ -1,9 +1,12 @@
-.footer {
+.footer-player {
   position: fixed;
   bottom: 0;
   z-index: 1000;
   filter: drop-shadow(0px 0px 20px rgba(0, 0, 0, 0.2));
   height: 10rem;
   width: 100%;
-  display: flex;
+  background-color: $white;
+  &__wrapper {
+    display: flex;
+  }
 }

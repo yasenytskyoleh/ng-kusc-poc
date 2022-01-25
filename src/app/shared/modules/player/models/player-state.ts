@@ -8,6 +8,6 @@ export interface PlayerState {
 
 export const isPlayingPlayer = (status: PlayerStateStatus): boolean => status === 'play' || status === 'playAd';
 
-export const showPlayerLoader = (status: PlayerStateStatus): boolean => ['loading'].includes(status);
+export const isPlayerLoading = (status: PlayerStateStatus): boolean => ['loading'].includes(status);
 
 

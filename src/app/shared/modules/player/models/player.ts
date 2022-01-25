@@ -1,3 +1,5 @@
+import {Moment} from 'moment';
+
 export enum PlayerAdServerType {
   vastAd = 'vastAd',
   tap = 'tap',
@@ -8,18 +10,18 @@ export enum PlayerAdServerType {
 export interface TDPlayerBasePlayOptions {
   timeShifting?: boolean;
   connectionTimeOut?: number;
-  trackingParameters?: { [key: string]: unknown}
+  trackingParameters?: { [key: string]: unknown }
 }
 
-export interface TDPlayerStationPlayOptions extends TDPlayerBasePlayOptions{
+export interface TDPlayerStationPlayOptions extends TDPlayerBasePlayOptions {
   station: string;
 }
 
-export interface TDPlayerMountPlayOptions extends TDPlayerBasePlayOptions{
+export interface TDPlayerMountPlayOptions extends TDPlayerBasePlayOptions {
   station: string;
 }
 
-export type TDPlayerPlayOptions  = TDPlayerStationPlayOptions | TDPlayerMountPlayOptions;
+export type TDPlayerPlayOptions = TDPlayerStationPlayOptions | TDPlayerMountPlayOptions;
 
 export interface NowPlayerApiParams {
   mount: string;
@@ -96,7 +98,7 @@ export interface PlayerTapAdConfig {
 
 export interface PlayerMediaAdConfig {
   mediaUrl: string;
-  linkUrl: string;
+  linkUrl?: string;
 }
 
 export interface PlayerVastAdConfig {
@@ -176,7 +178,9 @@ export interface PlayerListeners {
 
 export class Track {
   constructor(
-    public readonly time: string | null = '',
+    public readonly trackTime: number | null = null,
+    public readonly dateTimeStart: Moment | null = null,
+    public readonly dateTimeEnd: Moment | null = null,
     public readonly title: string | null = '',
     public readonly artist: string | null = '',
     public readonly perfomers: string | null = '',

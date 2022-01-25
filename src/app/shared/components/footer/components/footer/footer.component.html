@@ -1,9 +1,0 @@
-<footer class="footer">
-  <app-player *ngIf="isBrowser" [station]="stationName"
-              (playerPlayingChange)="onPlayerStateChange($event)">
-    <div *ngIf="currentTrack$ | async  as currentTrack">
-      {{currentTrack.title}}
-      {{currentTrack.artist}}
-    </div>
-  </app-player>
-</footer>

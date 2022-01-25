@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { FooterComponent } from './footer.component';
+import { FooterPlayerWrapperComponent } from './footer-player-wrapper.component';
 
 describe('FooterComponent', () => {
-  let component: FooterComponent;
-  let fixture: ComponentFixture<FooterComponent>;
+  let component: FooterPlayerWrapperComponent;
+  let fixture: ComponentFixture<FooterPlayerWrapperComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ FooterComponent ]
+      declarations: [ FooterPlayerWrapperComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(FooterComponent);
+    fixture = TestBed.createComponent(FooterPlayerWrapperComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

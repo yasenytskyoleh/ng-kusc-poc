@@ -1,7 +1,7 @@
 import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {WrapperComponent} from './components/wrapper/wrapper.component';
-import {FooterModule} from '../../components/footer';
+import {FooterPlayerWrapperModule} from '../../components/footer-player-wrapper';
 import {RouterModule} from '@angular/router';
 
 
@@ -11,7 +11,7 @@ import {RouterModule} from '@angular/router';
   ],
   imports: [
     CommonModule,
-    FooterModule,
+    FooterPlayerWrapperModule,
     RouterModule,
   ],
   exports: [

@@ -10,12 +10,10 @@ import {
   SimpleChanges
 } from '@angular/core';
 import {PlayerService} from '../../services/player.service';
-import {Subject} from 'rxjs';
-import {PlatformBrowserService} from '@core/modules/browser';
-import {Router} from '@angular/router';
 import {DestroySubscription} from '../../../../helpers/classes';
-import {distinctUntilChanged, filter, map, pairwise, takeUntil} from 'rxjs/operators';
-import {getPlayerStateByStreamState, isPlayingPlayer, PlayerStateStatus, showPlayerLoader} from '../../models';
+import {distinctUntilChanged, filter, pairwise, takeUntil} from 'rxjs/operators';
+import {getPlayerStateByStreamState, isPlayerLoading, isPlayingPlayer} from '../../models';
+import {PlayerSource} from '../../../../models';
 
 @Component({
   selector: 'app-player',
@@ -30,40 +28,24 @@ export class PlayerComponent extends DestroySubscription implements OnInit, OnCh
   public static nextId = 0;
   public readonly id = `player-container-${PlayerComponent.nextId++}`;
 
-  @Input() station: string | null = null;
-  @Output() playerPlayingChange = new EventEmitter<boolean>();
+  @Input() source: PlayerSource | null = null;
+  @Output() updateStationInfo = new EventEmitter<boolean>();
 
 
   public loading: boolean = false;
   public playing = false;
   public isMuted = false;
 
-  private readonly trackUpdate$ = new Subject<void>();
-  // private readonly recentTracksUpdate$ = new Subject<void>();
-  private readonly currentStation$ = new Subject<string>();
-  // private isListeningTracked$ = new BehaviorSubject<boolean>(true);
-  // private readonly destroyTracked$ = new Subject<void>();
-  // private readonly stopUpdatesTracks$ = new Subject<void>();
-  // private readonly destroyIntervalConnecting$ = new Subject<void>();
-  // private recentTracks$ = this.recentTracksUpdate$.asObservable();
-
-  private statuses = {current: null, previous: null};
-
 
   constructor(
     private readonly playerService: PlayerService,
     private readonly cdr: ChangeDetectorRef,
-    private readonly router: Router,
-    private readonly platformBrowserService: PlatformBrowserService,
   ) {
     super();
+    this.playerService.init();
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    const station = this.station;
-    if ('station' in changes && station) {
-      this.currentStation$.next(station);
-    }
   }
 
   ngOnInit(): void {
@@ -71,7 +53,6 @@ export class PlayerComponent extends DestroySubscription implements OnInit, OnCh
     this.onStreamFail();
     this.onPlayerStateChanges();
     this.onStreamStateChanges();
-    this.getLoadingState();
     this.stateLogs();
   }
 
@@ -83,29 +64,16 @@ export class PlayerComponent extends DestroySubscription implements OnInit, OnCh
   public playHandler(event: MouseEvent): void {
     event?.preventDefault();
     event?.stopPropagation();
-    const station = this.station;
-    if (!station) {
+    const source = this.playerService.audioSource;
+    if (!source || this.loading) {
       return;
     }
     const player = this.playerService;
     if (!this.playing) {
-      player.play(station);
+      player.play(source);
       return;
     }
     player.stop();
-  }
-
-  public playAdHandler(event: MouseEvent): void {
-    event?.preventDefault();
-    event?.stopPropagation();
-    if (this.playing) {
-
-    }
-    this.playerService.playAd();
-  }
-
-  public stopAdHandler(): void {
-    this.playerService.stop();
   }
 
 
@@ -131,33 +99,17 @@ export class PlayerComponent extends DestroySubscription implements OnInit, OnCh
       distinctUntilChanged(),
       takeUntil(this.destroyStream$)
     ).subscribe(state => {
-      // console.log(state);
-      this.updatePlayStatus(state);
-      this.updateLoadingStatus(state);
-    });
-  }
-
-  private updatePlayStatus(status: PlayerStateStatus): void {
-    const isPlaying = isPlayingPlayer(status);
-    this.playing = isPlaying;
-    this.playerPlayingChange.emit(isPlaying);
-    console.log(this.playing);
-    this.cdr.detectChanges();
-  }
-
-  private updateLoadingStatus(status: PlayerStateStatus): void {
-    this.loading = showPlayerLoader(status);
-    this.cdr.detectChanges();
-  }
-
-  private getLoadingState(): void {
-    this.playerService.playerState$.pipe(
-      map((playerState) => showPlayerLoader(playerState)),
-      takeUntil(this.destroyStream$),
-    ).subscribe(vl => {
-      this.loading = vl;
+      console.log(state);
+      this.playing = isPlayingPlayer(state);
+      this.loading = isPlayerLoading(state);
+      this.updateStationTrackInfo();
       this.cdr.detectChanges();
     });
+  }
+
+  private updateStationTrackInfo(): void {
+    const update = !(this.loading || this.playing);
+    this.updateStationInfo.emit(update);
   }
 
   public onChangeVolume(event: number): void {
