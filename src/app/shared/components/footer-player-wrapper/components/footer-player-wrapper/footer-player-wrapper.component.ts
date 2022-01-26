@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {interval, merge, Observable, Subject} from 'rxjs';
-import {distinctUntilChanged, startWith, switchMap, takeUntil, tap} from 'rxjs/operators';
+import {distinctUntilChanged, map, startWith, switchMap, takeUntil, tap} from 'rxjs/operators';
 import {DestroySubscription} from '../../../../helpers/classes';
 import {AppStateService} from '@core/modules/app-state';
 import {Track} from '../../../../modules/player/models';
@@ -17,7 +17,7 @@ export class FooterPlayerWrapperComponent extends DestroySubscription implements
 
   private readonly stopUpdateTracks$ = new Subject<void>();
   private readonly updateStationInfo$ = new Subject<boolean>();
-  public currentTrack$: Observable<Track | null> = this.appStateService.currentTrack$;
+  public currentTrack$: Observable<Track | null> | null = null;
   public currentSource$: Observable<PlayerSource> = this.appStateService.currentAudioSource$;
   public isBrowser: boolean;
 
@@ -31,6 +31,7 @@ export class FooterPlayerWrapperComponent extends DestroySubscription implements
   }
 
   ngOnInit(): void {
+    this.currentTrack$ = this.appStateService.currentTrack$.pipe(tap(state => console.log(state)));
     this.handleUpdateCurrentTrack();
   }
 

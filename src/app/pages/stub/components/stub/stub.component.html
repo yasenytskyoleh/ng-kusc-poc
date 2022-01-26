@@ -1,7 +1,27 @@
-<div>
-  <div *ngFor="let station of stations">
-    <img [src]="station.stationThumbnailUrl">
-    <span>{{station.stationPlayerName}}</span>
-    <button (click)="onPlay(station)">Play</button>
+<div class="stub-stations">
+  <div *ngFor="let station of stations" [class.active]="(currentSource$ | async)?.stationName === station.stationName"
+       class="stub-stations__item">
+    <a [routerLink]="['/', station.stationName]" class="stub-stations__link">
+      <img [src]="station.stationThumbnailUrl" class="stub-stations__item">
+      <span class="stub-stations_name">{{station.stationPlayerName}}</span>
+    </a>
+    <button (click)="onPlay(station)" class="stub-stations__play stub-button__play">Play</button>
+
+    <ng-container *ngIf="(currentSource$ | async)?.stationName === station.stationName">
+      <ng-container *ngTemplateOutlet="nowPlaying"></ng-container>
+    </ng-container>
   </div>
 </div>
+<div class="stub-tracks">
+  <div *ngFor="let track of demandTracks" [class.active]="(currentSource$ | async)?.trackName === track.trackName" class="stub-tracks__item">
+    <span class="stub-tracks__name">{{track.trackName}}</span>
+    <button (click)="onPlay(track)" class="stub-tracks__play stub-button__play">Play</button>
+    <ng-container *ngIf="(currentSource$ | async)?.trackName === track.trackName">
+      <ng-container *ngTemplateOutlet="nowPlaying"></ng-container>
+    </ng-container>
+  </div>
+</div>
+
+<ng-template #nowPlaying>
+  <span *ngIf="isPlayerPlay$ | async" class="stub-now-playing">Now playing</span>
+</ng-template>

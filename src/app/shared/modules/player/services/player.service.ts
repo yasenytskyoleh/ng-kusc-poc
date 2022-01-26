@@ -82,14 +82,13 @@ export class PlayerService {
   public init(): void {
     this.appStateService.currentAudioSource$.pipe(
       distinctUntilChanged(),
-      filter(_ => !!this.playerCurrentState && this.playerCurrentState !== 'initializing'),
       takeUntil(this.destroyStream$)
     ).subscribe((source) => {
-      if (source) {
-        this.play(source);
+      const playerState = this.playerCurrentState;
+      if (!source || playerState === 'initializing') {
         return;
       }
-      this.stop();
+      this.play(source);
     })
   }
 
@@ -97,6 +96,7 @@ export class PlayerService {
     this.streamInstanceState$.complete();
     this.destroyStream$.next();
     this.destroyStream$.complete();
+    this.streamFail$.complete();
     // TODO: Check listeners removing
     this.player.stop();
     this.removePlayerContainer(this.playerId);
@@ -155,11 +155,16 @@ export class PlayerService {
     }
     if (source instanceof DemandTrackDto) {
       this.player.stop();
-      this.playAd(source.url);
+      this.playAd(source);
     }
   }
 
   private playStation(station: string): void {
+    const nowPlaying = this.playerCurrentState === 'play';
+    if (nowPlaying) {
+      this.stop();
+    }
+    nowPlaying ? this.player.stop() : this.player.skipAd();
     this.player.play({station, timeShifting: true});
     this.updatePlayerStatus('loading');
   }
@@ -170,18 +175,20 @@ export class PlayerService {
     this.updatePlayerStatus('stop');
   }
 
-  public playAd(mediaUrl: string): void {
-    this.stop();
+  public playAd(source: DemandTrackDto): void {
+    const {url, artist, duration, trackName} = source;
+    this.player.stop();
     this.player.playAd(
       PlayerAdServerType.mediaAd,
-      {mediaUrl}
+      {mediaUrl: url}
     );
-    this.updatePlayerStatus('playAd');
+    const currentTrack = new Track(duration, null, null, trackName, artist);
+    const {current} = this.playerInstanceState$.value;
+    const playerState: PlayerState = {previous: current, current: 'playAd'};
+    this.appStateService.setStateProperties({playerState, currentTrack});
+    this.playerInstanceState$.next(playerState);
   }
 
-  public seek(): void {
-    this.player.seek(-10);
-  }
 
   private onPlayerReady(): void {
     this.updatePlayerStatus('ready');
@@ -239,7 +246,9 @@ export class PlayerService {
     if (current === newState) {
       return;
     }
-    this.playerInstanceState$.next({previous: current, current: newState});
+    const state: PlayerState = {previous: current, current: newState};
+    this.playerInstanceState$.next(state);
+    this.appStateService.playerState = state;
   }
 
   private getCurrentPlayerStatus(): Observable<PlayerStateStatus> {

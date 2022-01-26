@@ -1,6 +1,7 @@
 <div class="footer-player">
   <app-player class="footer-player__wrapper" *ngIf="isBrowser" [source]="currentSource$ | async"
               (updateStationInfo)="onUpdateStationInfo($event)">
+    {{currentTrack$ | async | json}}
     <div *ngIf="currentTrack$ | async  as currentTrack">
       <div>
         <ng-container *ngIf="(currentSource$ | async)?.stationName as stationName">
@@ -11,7 +12,10 @@
         <span>Currently Playing</span>
         <span>{{currentTrack.trackTime | trackTime}}</span>
       </div>
-      {{currentTrack.title}}, {{currentTrack.artist}}
+      {{currentTrack.title}}
+      <ng-container *ngIf="currentTrack.artist">
+        , {{currentTrack.artist}}
+      </ng-container>
     </div>
   </app-player>
 </div>

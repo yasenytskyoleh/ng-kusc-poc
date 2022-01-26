@@ -18,7 +18,6 @@ export class FooterPlayerWrapperService {
   }
 
   public getTrackNow(stationName: string): Observable<Track> {
-    console.log(stationName);
     return this.stationApiService.getStationCurrentTrack(stationName).pipe(
       map((track: TrackNowDto) => this.trackMapperService.mapTrackNow(track)),
       catchError((err: HttpErrorResponse) => of(new Track())),
