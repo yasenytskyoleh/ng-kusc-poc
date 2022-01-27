@@ -1,4 +1,4 @@
-import {Inject, Injectable, Renderer2, RendererFactory2} from '@angular/core';
+import {Inject, Injectable, NgZone, Renderer2, RendererFactory2} from '@angular/core';
 import {
   PlayerAdServerType,
   PlayerState,
@@ -72,6 +72,7 @@ export class PlayerService {
     private readonly platformBrowserService: PlatformBrowserService,
     private readonly appStateService: AppStateService,
     private readonly trackMapperService: TrackMapperService,
+    private readonly zone: NgZone,
   ) {
     this.renderer = rendererFactory.createRenderer(null, null);
     if (platformBrowserService.isBrowser) {
@@ -200,8 +201,11 @@ export class PlayerService {
     )
   }
 
+  // TODO: rewrite set current track from service
   public setTrackToStorage(track: Track): void {
-    this.appStateService.currentTrack = track;
+    this.zone.run(() => {
+      this.appStateService.currentTrack = track;
+    });
   }
 
   // TODO: add type
@@ -240,7 +244,6 @@ export class PlayerService {
     if (volume > 1) {
       return;
     }
-    console.log(volume);
     if (volume <= 0) {
       const minVolume = 0.000001;
       volume = minVolume;
