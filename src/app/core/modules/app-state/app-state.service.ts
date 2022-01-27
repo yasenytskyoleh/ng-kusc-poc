@@ -3,8 +3,8 @@ import {BehaviorSubject, Observable} from 'rxjs';
 import {PlatformBrowserService} from '../browser';
 import {UniversalStorageService} from '../universal-storage';
 import {AppState} from './app-state.model';
-import {isPlayerLoading, isPlayingPlayer, PlayerState, Track} from '@shared/modules/player/models';
-import {distinctUntilChanged, map, pluck, shareReplay, tap} from 'rxjs/operators';
+import {PlayerState, Track} from '@shared/modules/player/models';
+import {distinctUntilChanged, map, pluck, shareReplay} from 'rxjs/operators';
 import {PlayerSource} from '@shared/models';
 
 @Injectable()
@@ -31,8 +31,8 @@ export class AppStateService {
     );
   }
 
-  public set currentAudioSource(track: PlayerSource) {
-    this.setStateProperty('currentAudioSource', track);
+  public set currentAudioSource(currentAudioSource: PlayerSource) {
+    this.setStateProperty('currentAudioSource', currentAudioSource);
   }
 
   public get currentAudioSource(): PlayerSource {
@@ -41,13 +41,12 @@ export class AppStateService {
 
   public get currentAudioSource$(): Observable<PlayerSource> {
     return this.state$.pipe(
-      pluck('currentAudioSource')
+      pluck('currentAudioSource'),
+      distinctUntilChanged(),
     );
   }
 
   public set playerState(playerState: PlayerState) {
-
-    console.log('set player state', playerState);
     this.setStateProperty('playerState', playerState);
   }
 
@@ -67,9 +66,8 @@ export class AppStateService {
     @Inject(UniversalStorageService) private readonly universalStorageService: UniversalStorageService,
   ) {
     const state = new AppState();
-    console.log(state);
     this.state = new BehaviorSubject<AppState>(state);
-    this.state$ = this.state.asObservable();
+    this.state$ = this.state.asObservable().pipe(shareReplay(1));
   }
 
   protected getState(): AppState {
@@ -82,18 +80,14 @@ export class AppStateService {
 
   private setStateProperty(key: keyof AppState, value: AppState[keyof AppState]): void {
     const state = this.getState();
-    console.log(state.currentTrack, key, value);
     (state as any)[key] = value as any;
    this.setState(state);
-    console.log(state.currentTrack);
   }
 
   public setStateProperties(values: Partial<AppState>): void {
-    console.log(values);
     const state = this.getState();
     const newState = {...state, ...values};
     this.setState(newState);
-    console.log(this.getState().currentTrack);
   }
 
   private getStateProperty(key: keyof AppState): AppState[keyof AppState] {

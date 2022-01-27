@@ -7,7 +7,6 @@ export function appStateServiceFactory(
   platformBrowserService: PlatformBrowserService,
   universalStorageService: UniversalStorageService,
 ): AppStateService {
-  console.log('create');
   return new AppStateService(platformBrowserService, universalStorageService);
 }
 

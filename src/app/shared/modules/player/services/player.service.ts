@@ -10,10 +10,10 @@ import {
   Track,
   TrackCuePointEvent
 } from '../models';
-import {BehaviorSubject, combineLatest, Observable, Subject} from 'rxjs';
+import {BehaviorSubject, fromEvent, Observable, Subject} from 'rxjs';
 import {DOCUMENT} from '@angular/common';
 import {PlatformBrowserService} from '@core/modules/browser';
-import {debounceTime, distinctUntilChanged, filter, map, takeUntil} from 'rxjs/operators';
+import {distinctUntilChanged, map, takeUntil} from 'rxjs/operators';
 import {AppStateService} from '@core/modules/app-state';
 import {TrackMapperService} from '../../../services/track-mapper/track-mapper.service';
 import {DemandTrackDto, PlayerSource, StationDto} from '../../../models';
@@ -23,7 +23,7 @@ declare const TDSdk: any;
 @Injectable()
 export class PlayerService {
 
-  private currentVolume: number = 0;
+  private currentVolume: number = .5;
 
   private playerInstance: TDPlayer | undefined;
 
@@ -88,6 +88,7 @@ export class PlayerService {
       if (!source || playerState === 'initializing') {
         return;
       }
+      this.appStateService.currentTrack = null;
       this.play(source);
     })
   }
@@ -161,12 +162,9 @@ export class PlayerService {
 
   private playStation(station: string): void {
     const nowPlaying = this.playerCurrentState === 'play';
-    if (nowPlaying) {
-      this.stop();
-    }
     nowPlaying ? this.player.stop() : this.player.skipAd();
-    this.player.play({station, timeShifting: true});
     this.updatePlayerStatus('loading');
+    setTimeout(() => this.player.play({station, timeShifting: true}), 100);
   }
 
   public stop(): void {
@@ -195,11 +193,15 @@ export class PlayerService {
     this.setVolume(this.currentVolume);
   }
 
-  public trackCuePoint(): void {
+  public getTrackPoint(): Observable<Track> {
     const eventName = 'track-cue-point';
-    this.player.addEventListener(eventName, (event: TrackCuePointEvent) => {
-      this.appStateService.currentTrack = this.trackMapperService.mapTrackCuePoint(event);
-    });
+    return fromEvent(this.player, eventName).pipe(
+      map(event => this.trackMapperService.mapTrackCuePoint(event))
+    )
+  }
+
+  public setTrackToStorage(track: Track): void {
+    this.appStateService.currentTrack = track;
   }
 
   // TODO: add type
@@ -235,9 +237,16 @@ export class PlayerService {
 
   public setVolume(volume: number): void {
     this.currentVolume = volume;
-    if (volume < 0 || volume > 1) {
+    if (volume > 1) {
       return;
     }
+    console.log(volume);
+    if (volume <= 0) {
+      const minVolume = 0.000001;
+      volume = minVolume;
+      this.currentVolume = minVolume;
+    }
+
     this.player.setVolume(volume);
   }
 

@@ -1,8 +1,10 @@
 <div *ngIf="station" [class.active]="(currentSource$ | async)?.stationName === station.stationName"
      class="stub-stations__item">
   <div class="stub-stations__link">
-    <img [src]="station.stationThumbnailUrl" class="stub-stations__item">
-    <span class="stub-stations_name">{{station.stationPlayerName}}</span>
+    <div class="stub-stations__thumb">
+      <img [src]="station.stationThumbnailUrl" class="stub-stations__img">
+    </div>
+    <span class="stub-stations__name">{{station.stationPlayerName}}</span>
   </div>
   <button (click)="onPlay(station)" class="stub-stations__play stub-button__play">Play</button>
 
@@ -10,3 +12,4 @@
     <span *ngIf="isPlayerPlay$ | async" class="stub-now-playing">Now playing</span>
   </ng-container>
 </div>
+<button type="button" (click)="back()" class="stub-button__play">Back</button>

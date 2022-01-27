@@ -8,5 +8,55 @@
   background-color: $white;
   &__wrapper {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+  }
+  &__track {
+    display: flex;
+    margin: 0 auto 0 2rem;
+    &-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    &-station {
+      font-weight: bold;
+      font-size: 1.4rem;
+      line-height: 1.8rem;
+      text-transform: capitalize;
+      color: $red;
+    }
+    &-duration {
+      font-size: 1.3rem;
+      line-height: 1.7rem;
+      text-transform: uppercase;
+      color: $black;
+    }
+    &-name {
+      font-weight: bold;
+      font-size: 2.4rem;
+      line-height: 3.1rem;
+      color: $black;
+    }
+  }
+  &__thumb {
+    width: 9.2rem;
+    height: 9.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 2rem;
+    &-img {
+      max-width: 100%;
+      object-fit: contain;
+      object-position: center;
+    }
+  }
+  .volume-control {
+    display: flex;
+    align-items: center;
   }
 }
+
+

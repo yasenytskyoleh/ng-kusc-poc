@@ -11,9 +11,10 @@ import {
 } from '@angular/core';
 import {PlayerService} from '../../services/player.service';
 import {DestroySubscription} from '../../../../helpers/classes';
-import {distinctUntilChanged, filter, pairwise, takeUntil} from 'rxjs/operators';
-import {getPlayerStateByStreamState, isPlayerLoading, isPlayingPlayer} from '../../models';
+import {distinctUntilChanged, filter, pairwise, switchMap, takeUntil} from 'rxjs/operators';
+import {getPlayerStateByStreamState, isPlayerLoading, isPlayingPlayer, PlayerStateStatus} from '../../models';
 import {PlayerSource} from '../../../../models';
+import {fromEvent} from 'rxjs';
 
 @Component({
   selector: 'app-player',
@@ -21,21 +22,17 @@ import {PlayerSource} from '../../../../models';
   styleUrls: ['./player.component.scss'],
   providers: [
     PlayerService,
-  ],
+  ]
 })
 export class PlayerComponent extends DestroySubscription implements OnInit, OnChanges, OnDestroy {
 
-  public static nextId = 0;
-  public readonly id = `player-container-${PlayerComponent.nextId++}`;
-
   @Input() source: PlayerSource | null = null;
-  @Output() updateStationInfo = new EventEmitter<boolean>();
+  @Output() updateStationInfo = new EventEmitter<boolean>(true);
 
 
   public loading: boolean = false;
   public playing = false;
   public isMuted = false;
-
 
   constructor(
     private readonly playerService: PlayerService,
@@ -99,16 +96,15 @@ export class PlayerComponent extends DestroySubscription implements OnInit, OnCh
       distinctUntilChanged(),
       takeUntil(this.destroyStream$)
     ).subscribe(state => {
-      console.log(state);
-      this.playing = isPlayingPlayer(state);
-      this.loading = isPlayerLoading(state);
-      this.updateStationTrackInfo();
+      this.updatePlayerStatuses(state);
       this.cdr.detectChanges();
     });
   }
 
-  private updateStationTrackInfo(): void {
-    const update = !(this.loading || this.playing);
+  private updatePlayerStatuses(state: PlayerStateStatus): void {
+    this.playing = isPlayingPlayer(state);
+    this.loading = isPlayerLoading(state);
+    const update =  state === 'stop';
     this.updateStationInfo.emit(update);
   }
 
@@ -128,19 +124,20 @@ export class PlayerComponent extends DestroySubscription implements OnInit, OnCh
     this.playerService.playerState$.pipe(
       filter(state => state === 'ready'),
       distinctUntilChanged(),
+      switchMap(_ => this.playerService.getTrackPoint()),
       takeUntil(this.destroyStream$),
-    ).subscribe(_ => this.playerService.trackCuePoint());
+    ).subscribe(track => {
+      this.playerService.setTrackToStorage(track);
+      this.cdr.detectChanges();
+    });
   }
 
   private onStreamFail(): void {
     this.playerService.streamFailLoading$.pipe(
       takeUntil(this.destroyStream$),
     ).subscribe(() => {
-      console.log('fail');
-      this.loading = true;
       this.playerService.updatePlayerStatus('fail');
       this.cdr.detectChanges();
-      // this.intervalConnecting();
     });
   }
 

@@ -24,26 +24,12 @@ export interface StreamStateEventData {
 export type StreamStateEvent = PlayerEvent<StreamStateEventData>;
 
 
-const loadingStatuses: StreamState[] = [StreamState.GettingStation, StreamState.Buffering, StreamState.Reconnecting, StreamState.Connecting, StreamState.Failed];
-
-export const isLoadingStream = (status: StreamState): boolean => loadingStatuses.includes(status);
-
-export const isPlayStream = (status: StreamState): boolean => [StreamState.Playing].includes(status);
-
-const failedStatuses = [StreamState.Failed, StreamState.NotFound, StreamState.NotAllowed, StreamState.GeoBlocked];
-
-export const isFailedStream = (status: StreamState): boolean => failedStatuses.includes(status);
-
-const stopStream = [StreamState.Stop, StreamState.Pause];
-
-export const isStoppedStream = (status: StreamState): boolean => stopStream.includes(status);
-
 type GroupedStreamPlayerStatus = {
   [key in PlayerStateStatus]: (StreamState | null)[];
 };
 
 const groupedStatuses: Partial<GroupedStreamPlayerStatus> = {
-  'loading': [StreamState.GettingStation, StreamState.Buffering, StreamState.Reconnecting, StreamState.Connecting, StreamState.Failed],
+  'loading': [StreamState.GettingStation, StreamState.Buffering, StreamState.Reconnecting, StreamState.Connecting],
   'play': [StreamState.Playing],
   'error': [StreamState.Failed, StreamState.NotFound, StreamState.NotAllowed, StreamState.GeoBlocked],
   'stop': [StreamState.Stop, StreamState.Pause, null],

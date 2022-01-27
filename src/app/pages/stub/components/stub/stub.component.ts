@@ -4,8 +4,9 @@ import {PlayerService} from '@shared/modules/player/services/player.service';
 import {AppStateService} from '@core/modules/app-state';
 import {PlayerSource, StationDto} from '@shared/models';
 import {Observable} from 'rxjs';
-import {shareReplay} from 'rxjs/operators';
+import {shareReplay, tap} from 'rxjs/operators';
 import {StubService} from '../../services/stub.service';
+import {Track} from '@shared/modules/player/models';
 
 @Component({
   selector: 'app-stub',

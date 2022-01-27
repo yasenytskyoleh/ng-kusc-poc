@@ -4,7 +4,7 @@ import {Observable, of} from 'rxjs';
 import {HttpErrorResponse} from '@angular/common/http';
 import {catchError, map} from 'rxjs/operators';
 import {TransferHttpService} from '@gorniv/ngx-universal';
-import {ISongs, ITrackDto, TrackListDto, TrackNowDto} from '../../models';
+import {TrackNowDto} from '../../models';
 import {MomentService} from '../moment/moment.service';
 import {TrackMapperService} from '../track-mapper/track-mapper.service';
 

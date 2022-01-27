@@ -1,0 +1,18 @@
+<div *ngIf="station" class="footer-player__thumb">
+  <img [src]="station.stationThumbnailUrl" class="footer-player__thumb-img">
+</div>
+<div class="footer-player__track-info">
+  <div *ngIf="station" class="footer-player__track-station">
+    {{station.stationPlayerName}}
+  </div>
+  <div class="footer-player__track-duration">
+    <span>Currently Playing </span>
+    <span>{{currentTrack?.trackTime | trackTime}}</span>
+  </div>
+  <div class="footer-player__track-name">
+    {{currentTrack?.title}}
+    <ng-container *ngIf="currentTrack?.artist as artist">
+      , {{artist}}
+    </ng-container>
+  </div>
+</div>

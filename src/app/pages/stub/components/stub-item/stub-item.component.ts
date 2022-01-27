@@ -31,7 +31,7 @@ export class StubItemComponent implements OnInit {
   ngOnInit(): void {
     const station = this.getStationByUrl();
     if (!station) {
-      this.router.navigate(['../']);
+      this.back();
       return;
     }
     this.station = station;
@@ -39,6 +39,10 @@ export class StubItemComponent implements OnInit {
 
   public onPlay(source: PlayerSource): void {
     this.appStateService.currentAudioSource = source;
+  }
+
+  public back(): void {
+    this.router.navigate(['../']);
   }
 
   private getStationByUrl(): StationDto | null {

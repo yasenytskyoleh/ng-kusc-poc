@@ -1,0 +1,6 @@
+<div class="wrapper">
+  <router-outlet></router-outlet>
+  <app-footer-player-wrapper [currentTrack]="currentTrack$  | async"
+                             [currentSource]="currentSource$ | async"
+                             (updateStationInfo)="onUpdateStationInfo($event)"></app-footer-player-wrapper>
+</div>

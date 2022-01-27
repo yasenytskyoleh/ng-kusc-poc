@@ -1,39 +1,34 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {interval, merge, Observable, Subject} from 'rxjs';
-import {distinctUntilChanged, map, startWith, switchMap, takeUntil, tap} from 'rxjs/operators';
-import {DestroySubscription} from '../../../../helpers/classes';
 import {AppStateService} from '@core/modules/app-state';
-import {Track} from '../../../../modules/player/models';
-import {PlatformBrowserService} from '@core/modules/browser';
+import {StationDto} from '@shared/models';
+import {interval, merge, Subject} from 'rxjs';
+import {distinctUntilChanged, startWith, switchMap, takeUntil} from 'rxjs/operators';
+import {DestroySubscription} from '@shared/helpers/classes';
 import {FooterPlayerWrapperService} from '../../services/footer-player-wrapper.service';
-import {PlayerSource, StationDto} from '../../../../models';
 
 @Component({
-  selector: 'app-footer-player-wrapper',
-  templateUrl: './footer-player-wrapper.component.html',
-  styleUrls: ['./footer-player-wrapper.component.scss']
+  selector: 'app-wrapper',
+  templateUrl: './wrapper.component.html',
+  styleUrls: ['./wrapper.component.scss']
 })
-export class FooterPlayerWrapperComponent extends DestroySubscription implements OnInit, OnDestroy {
+export class WrapperComponent extends DestroySubscription implements OnInit, OnDestroy {
 
+  public currentTrack$ = this.appStateService.currentTrack$;
+  public currentSource$ = this.appStateService.currentAudioSource$;
   private readonly stopUpdateTracks$ = new Subject<void>();
   private readonly updateStationInfo$ = new Subject<boolean>();
-  public currentTrack$: Observable<Track | null> | null = null;
-  public currentSource$: Observable<PlayerSource> = this.appStateService.currentAudioSource$;
-  public isBrowser: boolean;
 
   constructor(
     private readonly appStateService: AppStateService,
-    private readonly platformBrowserService: PlatformBrowserService,
     private readonly footerPlayerWrapperService: FooterPlayerWrapperService,
   ) {
     super();
-    this.isBrowser = platformBrowserService.isBrowser;
   }
 
   ngOnInit(): void {
-    this.currentTrack$ = this.appStateService.currentTrack$.pipe(tap(state => console.log(state)));
     this.handleUpdateCurrentTrack();
   }
+
 
   ngOnDestroy() {
     super.ngOnDestroy();
@@ -41,7 +36,6 @@ export class FooterPlayerWrapperComponent extends DestroySubscription implements
     this.stopUpdateTracks$.complete();
     this.updateStationInfo$.complete();
   }
-
 
   public onUpdateStationInfo(needUpdate: boolean): void {
     this.updateStationInfo$.next(needUpdate);
@@ -52,6 +46,7 @@ export class FooterPlayerWrapperComponent extends DestroySubscription implements
       distinctUntilChanged(),
       takeUntil(this.destroyStream$)
     ).subscribe(needUpdate => {
+      console.log('need update', needUpdate);
       if (needUpdate) {
         this.getTrackCurrentPlay();
         return;
@@ -62,7 +57,7 @@ export class FooterPlayerWrapperComponent extends DestroySubscription implements
 
   private getTrackCurrentPlay(): void {
     const source = this.appStateService.currentAudioSource;
-    if(!(source instanceof StationDto)){
+    if (!(source instanceof StationDto)) {
       return
     }
     const destroyStream$ = merge(this.destroyStream$, this.stopUpdateTracks$);
@@ -75,4 +70,5 @@ export class FooterPlayerWrapperComponent extends DestroySubscription implements
       this.appStateService.currentTrack = track;
     });
   }
+
 }

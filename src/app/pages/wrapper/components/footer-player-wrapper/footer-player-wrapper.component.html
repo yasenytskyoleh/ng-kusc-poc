@@ -1,0 +1,7 @@
+<div class="footer-player">
+  <app-player class="footer-player__wrapper" *ngIf="isBrowser" [source]="currentSource"
+              (updateStationInfo)="onUpdateStationInfo($event)">
+    <app-footer-player-info [currentTrack]="currentTrack" [station]="station"
+                            [demandTrack]="demandTrack" class="footer-player__track"></app-footer-player-info>
+  </app-player>
+</div>

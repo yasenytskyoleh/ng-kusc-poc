@@ -8,7 +8,6 @@ import {TransferHttpModule} from '@gorniv/ngx-universal';
 import {TransferHttpCacheModule} from '@nguniversal/common';
 import {HTTP_INTERCEPTORS, HttpClientModule} from '@angular/common/http';
 import {ApiInterceptor} from '@shared/helpers/interceptors';
-import {WrapperModule} from '@shared/modules/wrapper';
 
 @NgModule({
   declarations: [
@@ -21,7 +20,6 @@ import {WrapperModule} from '@shared/modules/wrapper';
     TransferHttpModule,
     HttpClientModule,
     CoreModule,
-    WrapperModule,
   ],
   providers: [
     {

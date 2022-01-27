@@ -1,12 +1,13 @@
 import {Injectable} from '@angular/core';
-import {StationApiService} from '../../../services/station-api/station-api.service';
+import {StationApiService} from '@shared/services/station-api/station-api.service';
 import {Observable, of} from 'rxjs';
-import {Track} from '../../../modules/player/models';
+import {Track} from '@shared/modules/player/models';
 import {catchError, map} from 'rxjs/operators';
-import {TrackNowDto} from '../../../models';
+import {TrackNowDto} from '@shared/models';
 import {HttpErrorResponse} from '@angular/common/http';
-import {MomentService} from '../../../services/moment/moment.service';
-import {TrackMapperService} from '../../../services/track-mapper/track-mapper.service';
+import {MomentService} from '@shared/services/moment/moment.service';
+import {TrackMapperService} from '@shared/services/track-mapper/track-mapper.service';
+import {AppStateService} from '@core/modules/app-state';
 
 @Injectable()
 export class FooterPlayerWrapperService {

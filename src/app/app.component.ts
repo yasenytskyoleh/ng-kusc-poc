@@ -11,6 +11,7 @@ export class AppComponent implements OnDestroy {
   constructor(
     private readonly appStateService: AppStateService,
   ) {
+
   }
 
   ngOnDestroy() {
